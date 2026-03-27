@@ -2,13 +2,15 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { typeTagList } from "../types/types";
 import { axiosBaseQuery } from "./axiosBaseQuery";
+import { env } from "process";
 
 
 export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: axiosBaseQuery({
-    baseUrl: "http://localhost:5001/api/v1",
-    // baseUrl: "https://my-backend-production-5023.up.railway.app/api/v1",
+
+    baseUrl: env.NEXT_PUBLIC_API_URL || "https://rasel-hub-backend.onrender.com/api/v1",
+
   }),
 
   tagTypes: typeTagList,
