@@ -1,69 +1,67 @@
 "use client";
 import React from "react";
-import { App, Button, Form,  Input } from "antd";
-
-
+import { App, Button, Form, Input, Typography } from "antd";
+import { LockOutlined, RocketOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useLoginMutation } from "@/app/hooks/api/api";
 
+const { Text } = Typography;
 
 const Login = () => {
   const { message } = App.useApp();
   const [login, { isLoading }] = useLoginMutation();
-  const [form] = Form.useForm<{ userId: string }>(); 
+  const [form] = Form.useForm<{ userId: string }>();
   const router = useRouter();
 
   const onFinish = async (values: { userId: string }) => {
-    
     try {
-      // Login API call (password skipped)
-       await login({ userId: values.userId}).unwrap();
+      await login({ userId: values.userId }).unwrap();
       router.push("/username");
-
-      // Token cookie backend থেকে set হবে, localStorage দরকার নেই
       message.success("Login Successful!");
-      form.resetFields()
+      form.resetFields();
     } catch (err: unknown) {
-
-
-  // Type guard: check if err is an object and has "data"
-  if (err && typeof err === "object" && "data" in err) {
-    const errorData = (err as { data?: { message?: string } }).data;
-    message.error(errorData?.message || "Invalid User ID!");
-  } else {
-    message.error("Invalid User ID!");
-  }
-}
+      const error = err as { data?: { message?: string } };
+      message.error(error.data?.message || "Invalid User ID!");
+    }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "50px auto" }}>
-      <Form
-        name="loginForm"
-        layout="vertical"
-        onFinish={onFinish}
-        form={form}
+    <Form
+      form={form}
+      name="loginForm"
+      layout="vertical"
+      onFinish={onFinish}
+      requiredMark={false}
+      size="large"
+    >
+      <Form.Item
+        name="userId"
+        label={<Text style={{ color: "#CBD5E1", fontWeight: 500 }}>User ID</Text>}
+        rules={[{ required: true, message: "Please enter your User ID!" }]}
       >
-        <Form.Item
-          
-          name="userId"
-          rules={[{ required: true, message: "Please enter your User ID!" }]}
-        >
-          <Input.Password placeholder="Enter your User ID" />
-        </Form.Item>
+        <Input.Password
+          prefix={<LockOutlined style={{ color: "#64748B" }} />}
+          placeholder="Enter your User ID"
+          autoComplete="current-password"
+        />
+      </Form.Item>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            style={{ width: "50%" }}
-            loading={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Login"}
-          </Button>
-        </Form.Item>
-      </Form>
-    </div>
+      <Button
+        type="primary"
+        htmlType="submit"
+        block
+        loading={isLoading}
+        icon={!isLoading ? <RocketOutlined /> : undefined}
+      >
+        {isLoading ? "Signing in..." : "Sign In"}
+      </Button>
+
+      <div style={{ textAlign: "center", marginTop: 12 }}>
+        <Text style={{ color: "#64748B", fontSize: 13 }}>
+          Secure access · Protected dashboard
+        </Text>
+      </div>
+    </Form>
   );
 };
 

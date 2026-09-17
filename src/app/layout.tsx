@@ -18,8 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RASEL HUB",
-  description: "Leading My Website",
+  title: {
+    default: "RASEL HUB — Premium Digital Services",
+    template: "%s | RASEL HUB",
+  },
+  description:
+    "Professional digital services by Rasel Hasan — YouTube & Facebook promotion, web development and data entry.",
+  applicationName: "RASEL HUB",
   icons: {
     icon: "/favicon.png",
   },
