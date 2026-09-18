@@ -123,7 +123,10 @@ const EntryForm: React.FC = () => {
               <Form.Item
                 name="password"
                 label="Password"
-                rules={[{ required: true, message: "Password is required" }]}
+                rules={[
+                  { required: true, message: "Password is required" },
+                  { min: 6, message: "Password must be at least 6 characters" },
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined style={{ color: "#94A3B8" }} />}

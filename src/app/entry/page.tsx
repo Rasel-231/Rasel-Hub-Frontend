@@ -1,12 +1,18 @@
-import React from 'react';
-import EntryForm from '../Components/EntryForm';
+import type { Metadata } from "next";
+import EntryForm from "../Components/EntryForm";
+import { requireAuth } from "@/app/lib/authGuard";
 
-const page = () => {
+export const metadata: Metadata = {
+  title: "Entry",
+};
+
+const entryPage = async () => {
+  await requireAuth("/entry");
   return (
     <div>
-      <EntryForm/>
+      <EntryForm />
     </div>
   );
 };
 
-export default page;
+export default entryPage;

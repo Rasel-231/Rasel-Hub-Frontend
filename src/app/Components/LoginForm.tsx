@@ -4,10 +4,18 @@ import { App, Button, Form, Input, Typography } from "antd";
 import { LockOutlined, RocketOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useLoginMutation } from "@/app/hooks/api/api";
+import { setSession } from "@/app/lib/session";
 
 const { Text } = Typography;
 
-const Login = () => {
+type LoginFormProps = {
+  /** Where to go after a successful login. */
+  redirectTo?: string;
+  /** Show labels in light/dark contexts. Defaults to light text (dark surfaces). */
+  dark?: boolean;
+};
+
+const LoginForm = ({ redirectTo = "/username", dark = true }: LoginFormProps) => {
   const { message } = App.useApp();
   const [login, { isLoading }] = useLoginMutation();
   const [form] = Form.useForm<{ userId: string }>();
@@ -15,10 +23,11 @@ const Login = () => {
 
   const onFinish = async (values: { userId: string }) => {
     try {
-      await login({ userId: values.userId }).unwrap();
-      router.push("/username");
+      const result = await login({ userId: values.userId }).unwrap();
+      setSession(result);
       message.success("Login Successful!");
       form.resetFields();
+      router.push(redirectTo);
     } catch (err: unknown) {
       const error = err as { data?: { message?: string } };
       message.error(error.data?.message || "Invalid User ID!");
@@ -36,7 +45,11 @@ const Login = () => {
     >
       <Form.Item
         name="userId"
-        label={<Text style={{ color: "#CBD5E1", fontWeight: 500 }}>User ID</Text>}
+        label={
+          <Text style={{ color: dark ? "#CBD5E1" : undefined, fontWeight: 500 }}>
+            User ID
+          </Text>
+        }
         rules={[{ required: true, message: "Please enter your User ID!" }]}
       >
         <Input.Password
@@ -56,13 +69,15 @@ const Login = () => {
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
 
-      <div style={{ textAlign: "center", marginTop: 12 }}>
-        <Text style={{ color: "#64748B", fontSize: 13 }}>
-          Secure access · Protected dashboard
-        </Text>
-      </div>
+      {dark && (
+        <div style={{ textAlign: "center", marginTop: 12 }}>
+          <Text style={{ color: "#64748B", fontSize: 13 }}>
+            Secure access · Protected dashboard
+          </Text>
+        </div>
+      )}
     </Form>
   );
 };
 
-export default Login;
+export default LoginForm;

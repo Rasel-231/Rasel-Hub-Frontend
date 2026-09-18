@@ -81,6 +81,15 @@ body {
   white-space: nowrap;
 }
 
+/* ---------- Service showcase carousel ---------- */
+.service-carousel .slick-slider,
+.service-carousel .slick-list,
+.service-carousel .slick-track,
+.service-carousel .slick-slide,
+.service-carousel .slick-slide > div {
+  height: 100%;
+}
+
 /* Dark glass card (for overlays / dark surfaces) */
 .glass-card {
   background: rgba(255, 255, 255, 0.1);

@@ -1,14 +1,12 @@
-"use client"
+import type { Metadata } from "next";
+import UserName from "./clientUserName/username";
+import { requireAuth } from "@/app/lib/authGuard";
 
-import React from 'react';
-import UserName from './clientUserName/username';
-
-const Username = () => {
-  return (
-    <div>
-      <UserName/>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "Users",
 };
 
-export default Username;
+export default async function UsernamePage() {
+  await requireAuth("/username");
+  return <UserName />;
+}

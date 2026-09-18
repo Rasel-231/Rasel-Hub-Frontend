@@ -37,7 +37,7 @@ const NotFoundPages = () => {
           </div>
         }
         extra={
-          <Space direction="vertical" size={12}>
+          <Space orientation="vertical" size={12}>
             <Button type="primary" size="large" icon={<HomeOutlined />} onClick={() => router.push("/")}>
               Back to Home
             </Button>

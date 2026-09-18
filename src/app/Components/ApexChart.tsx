@@ -14,7 +14,7 @@ const ChartFallback = () => (
       justifyContent: 'center',
     }}
   >
-    <Spin tip="Loading chart..." />
+    <Spin description="Loading chart..." />
   </div>
 );
 

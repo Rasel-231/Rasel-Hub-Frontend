@@ -122,7 +122,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         placement="left"
-        width={260}
+        size={260}
         closable
         title={<SiderBrand />}
         styles={{

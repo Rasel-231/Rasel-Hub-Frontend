@@ -32,12 +32,15 @@ import {
   UserOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons";
-import { useClientsQuery, useDeleteClientsMutation, useUpdateClientsMutation } from "@/app/hooks/api/api";
+import {
+  useClientsQuery,
+  useDeleteClientsMutation,
+  useUpdateClientsMutation,
+} from "@/app/hooks/api/api";
 import { IClient } from "@/app/types/types";
 import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
-const { confirm } = Modal;
 
 const siteTagColor: Record<string, string> = {
   bajilive: "green",
@@ -56,10 +59,16 @@ const siteOptions = [
 ];
 
 const UserName = () => {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const [form] = Form.useForm<IClient>();
 
-  const { data: users, isLoading, isError, isFetching, refetch } = useClientsQuery(undefined);
+  const {
+    data: rawData,
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useClientsQuery(undefined);
   const [deleteClient, { isLoading: isDeleting }] = useDeleteClientsMutation();
   const [updateClient, { isLoading: isUpdating }] = useUpdateClientsMutation();
 
@@ -67,11 +76,16 @@ const UserName = () => {
   const [editingUser, setEditingUser] = useState<IClient | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  console.log("Fetched clients:", rawData);
+  const clients: IClient[] = Array.isArray(rawData)
+    ? rawData
+    : rawData?.data || [];
 
-  const clients: IClient[] = users?.data || [];
   const total = clients.length;
   const userCount = clients.filter((c) => c.category === "user").length;
-  const affiliateCount = clients.filter((c) => c.category === "affiliate").length;
+  const affiliateCount = clients.filter(
+    (c) => c.category === "affiliate",
+  ).length;
 
   const toggleReveal = (id: string) => {
     setRevealed((prev) => {
@@ -97,7 +111,28 @@ const UserName = () => {
     try {
       if (!editingUser) return;
       const values = await form.validateFields();
-      await updateClient({ id: editingUser._id, data: values }).unwrap();
+
+      const changed: Partial<IClient> = {};
+      Object.keys(values).forEach((key) => {
+        const field = key as keyof IClient;
+        const newVal = values[field];
+        const oldVal = editingUser[field];
+        if (String(newVal ?? "") !== String(oldVal ?? "")) {
+          changed[field] = newVal as never;
+        }
+      });
+
+      if (Object.keys(changed).length === 0) {
+        message.info("No changes to save");
+        handleCancel();
+        return;
+      }
+
+      if (changed.phone !== undefined) {
+        changed.phone = String(changed.phone);
+      }
+
+      await updateClient({ id: editingUser._id, data: changed }).unwrap();
       message.success("Client updated successfully");
       handleCancel();
     } catch {
@@ -106,7 +141,7 @@ const UserName = () => {
   };
 
   const showDeleteConfirm = (user: IClient) => {
-    confirm({
+    modal.confirm({
       title: "Delete this client?",
       icon: <ExclamationCircleOutlined />,
       content: `${user.username} will be permanently removed. This cannot be undone.`,
@@ -163,7 +198,11 @@ const UserName = () => {
         title="Failed to load clients"
         subTitle="Please check your connection and try again."
         extra={
-          <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
+          <Button
+            type="primary"
+            icon={<ReloadOutlined />}
+            onClick={() => refetch()}
+          >
             Retry
           </Button>
         }
@@ -177,17 +216,31 @@ const UserName = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} sm={8}>
           <Card style={{ borderRadius: 14 }}>
-            <Statistic title="Total Clients" value={total} prefix={<TeamOutlined style={{ color: "#4F46E5" }} />} />
+            <Statistic
+              title="Total Clients"
+              value={total}
+              prefix={<TeamOutlined style={{ color: "#4F46E5" }} />}
+            />
           </Card>
         </Col>
         <Col xs={12} sm={8}>
           <Card style={{ borderRadius: 14 }}>
-            <Statistic title="User IDs" value={userCount} valueStyle={{ color: "#06B6D4" }} prefix={<UserOutlined />} />
+            <Statistic
+              title="User IDs"
+              value={userCount}
+              styles={{ content: { color: "#06B6D4" } }}
+              prefix={<UserOutlined />}
+            />
           </Card>
         </Col>
         <Col xs={12} sm={8}>
           <Card style={{ borderRadius: 14 }}>
-            <Statistic title="Affiliate IDs" value={affiliateCount} valueStyle={{ color: "#10B981" }} prefix={<UsergroupAddOutlined />} />
+            <Statistic
+              title="Affiliate IDs"
+              value={affiliateCount}
+              styles={{ content: { color: "#10B981" } }}
+              prefix={<UsergroupAddOutlined />}
+            />
           </Card>
         </Col>
       </Row>
@@ -206,27 +259,45 @@ const UserName = () => {
         <Title level={4} style={{ margin: 0, fontWeight: 800 }}>
           <UserOutlined /> Client Management
         </Title>
-        <Button icon={<ReloadOutlined />} onClick={() => refetch()} loading={isFetching}>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={() => refetch()}
+          loading={isFetching}
+        >
           Refresh
         </Button>
       </div>
 
       {/* Cards */}
       {clients.length === 0 ? (
-        <Empty description="No clients found yet — create your first entry." style={{ padding: "40px 0" }} />
+        <Empty
+          description="No clients found yet — create your first entry."
+          style={{ padding: "40px 0" }}
+        />
       ) : (
         <Row gutter={[16, 16]}>
           {clients.map((user) => (
             <Col key={user._id} xs={24} sm={12} md={8} lg={6}>
               <Card
                 hoverable
-                style={{ height: "100%", borderRadius: 16, border: "1px solid #E9EEF5" }}
+                style={{
+                  height: "100%",
+                  borderRadius: 16,
+                  border: "1px solid #E9EEF5",
+                }}
                 title={
-                  <Space align="center" size={8} style={{ width: "100%", justifyContent: "space-between" }}>
+                  <Space
+                    align="center"
+                    size={8}
+                    style={{ width: "100%", justifyContent: "space-between" }}
+                  >
                     <Text strong ellipsis style={{ maxWidth: 120 }}>
                       {user.username}
                     </Text>
-                    <Tag color={user.category === "user" ? "blue" : "purple"} style={{ marginInlineEnd: 0 }}>
+                    <Tag
+                      color={user.category === "user" ? "blue" : "purple"}
+                      style={{ marginInlineEnd: 0 }}
+                    >
                       {user.category}
                     </Tag>
                   </Space>
@@ -245,20 +316,31 @@ const UserName = () => {
                 ]}
               >
                 <div style={{ lineHeight: "2.1" }}>
-                  <p style={{ margin: 0 }}>
-                    <Text type="secondary" style={{ display: "inline-block", width: 70 }}>
+                  <div style={{ margin: 0 }}>
+                    <Text
+                      type="secondary"
+                      style={{ display: "inline-block", width: 70 }}
+                    >
                       Site:
                     </Text>
-                    <Tag color={siteTagColor[user.sitename] ?? "default"}>{user.sitename}</Tag>
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <Text type="secondary" style={{ display: "inline-block", width: 70 }}>
+                    <Tag color={siteTagColor[user.sitename] ?? "default"}>
+                      {user.sitename}
+                    </Tag>
+                  </div>
+                  <div style={{ margin: 0 }}>
+                    <Text
+                      type="secondary"
+                      style={{ display: "inline-block", width: 70 }}
+                    >
                       Phone:
                     </Text>
                     <Text style={{ fontSize: 13 }}>{user.phone}</Text>
-                  </p>
-                  <p style={{ margin: 0 }}>
-                    <Text type="secondary" style={{ display: "inline-block", width: 70 }}>
+                  </div>
+                  <div style={{ margin: 0 }}>
+                    <Text
+                      type="secondary"
+                      style={{ display: "inline-block", width: 70 }}
+                    >
                       Pass:
                     </Text>
                     <Space size={6}>
@@ -269,20 +351,29 @@ const UserName = () => {
                         type="text"
                         size="small"
                         style={{ padding: 0, height: "auto", color: "#94A3B8" }}
-                        icon={revealed.has(user._id) ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                        icon={
+                          revealed.has(user._id) ? (
+                            <EyeInvisibleOutlined />
+                          ) : (
+                            <EyeOutlined />
+                          )
+                        }
                         onClick={() => toggleReveal(user._id)}
                       />
                     </Space>
-                  </p>
+                  </div>
                   {user.createdAt && (
-                    <p style={{ margin: 0 }}>
-                      <Text type="secondary" style={{ display: "inline-block", width: 70 }}>
+                    <div style={{ margin: 0 }}>
+                      <Text
+                        type="secondary"
+                        style={{ display: "inline-block", width: 70 }}
+                      >
                         Joined:
                       </Text>
                       <Text style={{ fontSize: 12, color: "#64748B" }}>
                         {dayjs(user.createdAt).format("MMM D, YYYY")}
                       </Text>
-                    </p>
+                    </div>
                   )}
                 </div>
               </Card>
@@ -341,7 +432,9 @@ const UserName = () => {
             name="password"
             rules={[{ required: true, message: "Password is required" }]}
           >
-            <Input.Password prefix={<EyeInvisibleOutlined style={{ color: "#94A3B8" }} />} />
+            <Input.Password
+              prefix={<EyeInvisibleOutlined style={{ color: "#94A3B8" }} />}
+            />
           </Form.Item>
         </Form>
       </Modal>

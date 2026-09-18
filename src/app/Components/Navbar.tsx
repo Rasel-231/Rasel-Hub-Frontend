@@ -24,7 +24,8 @@ import {
 } from "@ant-design/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useLoginMutation, useLogoutMutation, useVerifyQuery } from "../hooks/api/api";
+import { useLogoutMutation, useVerifyQuery } from "../hooks/api/api";
+import { clearSession } from "../lib/session";
 import type { MenuProps } from "antd";
 
 const { useBreakpoint } = Grid;
@@ -73,7 +74,6 @@ const CustomNavbar = () => {
     isLoading: verifyLoading,
     refetch,
   } = useVerifyQuery(undefined);
-  const [login, { isLoading: loginLoading }] = useLoginMutation();
   const [logout, { isLoading: logoutLoading }] = useLogoutMutation();
 
   // Avoid hydration mismatch on SSR: only switch to mobile layout after mount.
@@ -103,21 +103,8 @@ const CustomNavbar = () => {
         (item.key !== "/" && pathname.startsWith(item.key))
     )?.key || "/";
 
-  const handleLogin = async () => {
-    const id = verifiedToken?.userId;
-    if (!id) {
-      // Not verified yet — take the user to the login form on the hero.
-      router.push("/");
-      return;
-    }
-    try {
-      await login({ userId: id }).unwrap();
-      message.success("Login Successful!");
-      router.push("/username");
-    } catch (err: unknown) {
-      const error = err as { data?: { message?: string } };
-      message.error(error.data?.message || "Login failed");
-    }
+  const handleLogin = () => {
+    router.push("/login");
   };
 
   const handleLogout = () => {
@@ -133,6 +120,7 @@ const CustomNavbar = () => {
       onOk: async () => {
         try {
           await logout(undefined).unwrap();
+          clearSession();
           message.success("Logged out successfully");
         } catch {
           message.error("Logout failed");
@@ -205,7 +193,6 @@ const CustomNavbar = () => {
             block
             type="primary"
             icon={<RocketOutlined />}
-            loading={loginLoading}
             onClick={handleLogin}
           >
             Login
@@ -215,7 +202,9 @@ const CustomNavbar = () => {
       {isLoggedIn && (
         <Space style={{ marginTop: 16, justifyContent: "center" }} size={8}>
           <Avatar size={40} style={{ background: "linear-gradient(135deg,#4F46E5,#06B6D4)" }} icon={<UserOutlined />} />
-          <span style={{ color: "#CBD5E1", fontWeight: 600 }}>Rasel Hasan</span>
+          <span style={{ color: "#CBD5E1", fontWeight: 600 }}>
+            {verifiedToken?.data?.username || "Account"}
+          </span>
           <Tag color="green" style={{ marginInlineEnd: 0 }}>Active</Tag>
         </Space>
       )}
@@ -296,8 +285,12 @@ const CustomNavbar = () => {
                     />
                     <Tooltip title="Signed in">
                       <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
-                        <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>Rasel Hasan</span>
-                        <span style={{ color: "#64748B", fontSize: 12 }}>Admin</span>
+                        <span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>
+                          {verifiedToken?.data?.username || "Account"}
+                        </span>
+                        <span style={{ color: "#64748B", fontSize: 12 }}>
+                          {verifiedToken?.data?.role || "Member"}
+                        </span>
                       </div>
                     </Tooltip>
                   </Space>
@@ -307,7 +300,6 @@ const CustomNavbar = () => {
                   type="primary"
                   ghost
                   icon={<RocketOutlined />}
-                  loading={loginLoading}
                   onClick={handleLogin}
                   style={{ borderColor: "rgba(129,140,248,0.6)", color: "#C7D2FE" }}
                 >
@@ -324,7 +316,7 @@ const CustomNavbar = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         placement="left"
-        width={280}
+        size={280}
         closable
         title={
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

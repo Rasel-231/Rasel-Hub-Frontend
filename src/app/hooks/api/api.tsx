@@ -13,16 +13,6 @@ export const clientApi = baseApi.injectEndpoints({
       providesTags: [TagTypes.clients],
     }),
 
-    // ------------------- GET SINGLE (ID fix) -------------------
-    singleClients: build.query<IResponse<IClient>, string>({
-      query: (id: string) => ({
-        url: `/username/${id}`,
-        method: "GET",
-        withCredentials: true,
-      }),
-      providesTags: [TagTypes.clients],
-    }),
-
     // ------------------- CREATE (newUser fix) -------------------
     createClients: build.mutation<IResponse<IClient>, Partial<IClient>>({
       query: (newUser: Partial<IClient>) => ({
@@ -69,7 +59,7 @@ export const clientApi = baseApi.injectEndpoints({
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       }),
-      invalidatesTags: [TagTypes.Auth],
+      invalidatesTags: [TagTypes.Auth, TagTypes.clients],
     }),
 
     // ------------------- LOGOUT -------------------
@@ -79,7 +69,7 @@ export const clientApi = baseApi.injectEndpoints({
         method: "POST",
         withCredentials: true,
       }),
-      invalidatesTags: [TagTypes.Auth],
+      invalidatesTags: [TagTypes.Auth, TagTypes.clients],
     }),
 
     // ------------------- VERIFY -------------------
@@ -97,7 +87,6 @@ export const clientApi = baseApi.injectEndpoints({
 
 export const {
   useClientsQuery,
-  useSingleClientsQuery,
   useCreateClientsMutation,
   useUpdateClientsMutation,
   useDeleteClientsMutation,

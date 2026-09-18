@@ -1,6 +1,6 @@
 "use client";
 
-import Login from "@/app/auth/login/page";
+import LoginForm from "@/app/Components/LoginForm";
 import React from "react";
 import {
   AppstoreOutlined,
@@ -86,13 +86,13 @@ const BackgroundVideo = () => {
         }}
       >
         {verifyLoading ? (
-          <Space direction="vertical" size={18} align="center">
+          <Space orientation="vertical" size={18} align="center">
             <Spin size="large" />
             <Text style={{ color: "#CBD5E1" }}>Checking session...</Text>
           </Space>
         ) : isLoggedIn ? (
           <>
-            <Space direction="vertical" size={16} style={{ alignItems: "center" }}>
+            <Space orientation="vertical" size={16} style={{ alignItems: "center" }}>
               <Tag
                 icon={<SafetyCertificateOutlined />}
                 color="success"
@@ -113,7 +113,9 @@ const BackgroundVideo = () => {
               >
                 Welcome back,
                 <br />
-                <span className="text-gradient">Mr. Rasel</span>
+                <span className="text-gradient">
+                  {verifyUser?.data?.username || "Mr. Rasel"}
+                </span>
               </Typography.Title>
               <Text style={{ color: "#CBD5E1", fontSize: "clamp(1rem, 2.5vw, 1.2rem)", maxWidth: 520 }}>
                 Your command center is ready. Manage services, clients and payments
@@ -179,7 +181,7 @@ const BackgroundVideo = () => {
             <Typography.Text style={{ color: "#94A3B8", display: "block", marginBottom: 20 }}>
               Sign in to unlock your dashboard
             </Typography.Text>
-            <Login />
+            <LoginForm redirectTo="/username" dark />
             <div style={{ marginTop: 16 }}>
               <Space size={6} style={{ justifyContent: "center", width: "100%" }}>
                 <RocketOutlined style={{ color: "#FBBF24" }} />
