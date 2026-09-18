@@ -1,5 +1,6 @@
 import { BaseQueryFn } from "@reduxjs/toolkit/query";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import { readAccessToken } from "@/app/lib/session";
 
 export const axiosBaseQuery =
   (
@@ -16,7 +17,10 @@ export const axiosBaseQuery =
   > =>
   async ({ url, method, params, data }, { getState }) => {
     try {
-      const token = (getState() as { auth?: { token?: string } }).auth?.token;
+      let token = (getState() as { auth?: { token?: string } }).auth?.token;
+      if (!token) {
+        token = readAccessToken();
+      }
       const result = await axios({
         url: baseUrl + url,
         method,
