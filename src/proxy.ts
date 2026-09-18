@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get("accessToken")?.value;
+  const token =
+    request.cookies.get("accessToken")?.value ??
+    request.cookies.get("token")?.value;
 
   if (!token) {
     const loginUrl = new URL("/login", request.url);
