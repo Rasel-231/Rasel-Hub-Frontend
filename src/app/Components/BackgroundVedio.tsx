@@ -186,7 +186,7 @@ const BackgroundVideo = () => {
               <Space size={6} style={{ justifyContent: "center", width: "100%" }}>
                 <RocketOutlined style={{ color: "#FBBF24" }} />
                 <Text style={{ color: "#64748B", fontSize: 12 }}>
-                  Free demo access for clients
+                  Secure access — your data stays protected
                 </Text>
               </Space>
             </div>
